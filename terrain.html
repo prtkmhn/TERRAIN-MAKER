@@ -5,7 +5,7 @@
 
   <script id="groundVertexShader" type="x-shader/x-fragment">
 
-    //Source: http://www.chandlerprall.com/webgl/terrain/
+    
     attribute float displacement;
 
     varying vec2 vUv;
@@ -25,7 +25,6 @@
   </script>
   <script id="groundFragmentShader" type="x-shader/x-vertex">
 
-    //Source: http://www.chandlerprall.com/webgl/terrain/
     uniform sampler2D texture_grass;
     uniform sampler2D texture_bare;
     uniform sampler2D texture_snow;
@@ -118,7 +117,6 @@
 
   <script id="waterVertexShader" type="x-shader/x-fragment">
 
-    //Source: http://www.chandlerprall.com/webgl/terrain/
     attribute float displacement;
 
     varying float vDisplacement;
@@ -136,7 +134,6 @@
   </script>
   <script id="waterFragmentShader" type="x-shader/x-vertex">
 
-    //Source: http://www.chandlerprall.com/webgl/terrain/
     uniform float water_level;
     uniform float time;
 
