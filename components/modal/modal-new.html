@@ -1,0 +1,17 @@
+﻿<div class="modal-header">
+  <h3 class="modal-title">Open a new project</h3>
+</div>
+<div class="modal-body">
+  <span ng-show="newFile">You are about to create a new project, please import a custom height map to start from, or use default one.</span>
+  <span ng-hide="newFile">Please select an existing project from your local drive.</span>
+  
+  <form name="formCtrl">
+    <div class="form-group">
+      <input type="file" class="form-control" ng-model="file" required />
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button ng-if="newFile" class="btn btn-default" ng-click="cancel()">Use default</button>
+  <button class="btn btn-success" ng-click="ok()"><span ng-if="newFile">Import</span><span ng-if="!newFile">Open</span></button>
+</div>

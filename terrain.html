@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html hola_ext_inject="disabled">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+  <script id="groundVertexShader" type="x-shader/x-fragment">
+
+    //Source: http://www.chandlerprall.com/webgl/terrain/
+    attribute float displacement;
+
+    varying vec2 vUv;
+    varying vec3 vPosition;
+
+    void main( void ) {
+
+      vUv = uv;
+      vPosition = position;
+
+      vPosition.z += displacement;
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition, 1);
+
+    }
+
+  </script>
+  <script id="groundFragmentShader" type="x-shader/x-vertex">
+
+    //Source: http://www.chandlerprall.com/webgl/terrain/
+    uniform sampler2D texture_grass;
+    uniform sampler2D texture_bare;
+    uniform sampler2D texture_snow;
+
+    uniform bool show_ring;
+    uniform float ring_width;
+    uniform vec4 ring_color;
+    uniform vec3 ring_center;
+    uniform float ring_radius;
+
+    varying vec2 vUv;
+    varying vec3 vPosition;
+
+
+
+    float dist_falloff(float distance, float falloff) {
+      float alpha = (falloff - distance) / falloff;
+      if (alpha < 0.0) {
+        alpha = 0.0;
+      }
+      if (alpha > 1.0) {
+        alpha = 1.0;
+      }
+      return alpha;
+    }
+
+
+    vec3 layerColor(vec3 color1, vec3 color2, float alpha) {
+      return mix(
+        color1,
+        color2,
+        alpha
+      );
+    }
+
+
+    void main()
+    {
+
+      float paintDist = 0.9 * ring_radius;
+      // Texture loading
+      vec3 diffuseBare = texture2D( texture_bare, vUv ).rgb;
+      vec3 diffuseGrass = texture2D( texture_grass, vUv ).rgb;
+      vec3 diffuseSnow = texture2D( texture_snow, vUv ).rgb;
+
+      // Get base texture
+      vec3 fragcolor = diffuseBare;
+
+      // Grass texture
+      fragcolor = layerColor(
+        fragcolor,
+        diffuseGrass,
+        dist_falloff(abs(vPosition.z - 0.0), 14.0)
+      );
+
+      // Ice texture
+      fragcolor = layerColor(
+        fragcolor,
+        diffuseSnow,
+        dist_falloff(abs(vPosition.z - 14.0), 2.0)
+      );
+
+      gl_FragColor = vec4(fragcolor, 1.0);
+
+      float distance = sqrt((vPosition.x - ring_center.x) * (vPosition.x - ring_center.x) + (vPosition.y - ring_center.y) * (vPosition.y - ring_center.y));
+
+      // Ring
+      if (show_ring == true && distance < ring_radius + ring_width / 2.0 && distance > ring_radius - ring_width / 2.0) {
+
+      gl_FragColor.r += ring_color.r;
+      gl_FragColor.b += ring_color.b;
+      gl_FragColor.g += ring_color.g;
+      gl_FragColor.a += ring_color.a;
+      gl_FragColor = normalize(gl_FragColor);
+
+      }
+      
+      // Grid overlay
+      if (distance < paintDist) {
+        float tiles = 1.0 / 50.0;
+        float val = mod(vUv.y, tiles);
+        if (mod(vUv.x, tiles) < .003 || mod(vUv.y, tiles) < .003) {
+          gl_FragColor = gl_FragColor * (distance / paintDist);
+          gl_FragColor.a = 1.0;
+        }
+      }
+    }
+
+  </script>
+
+  <script id="waterVertexShader" type="x-shader/x-fragment">
+
+    //Source: http://www.chandlerprall.com/webgl/terrain/
+    attribute float displacement;
+
+    varying float vDisplacement;
+    varying vec2 vUv;
+    varying vec3 vPosition;
+
+    void main( void ) {
+      vDisplacement = displacement;
+      vUv = uv;
+      vPosition = position;
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition, 1);
+    }
+
+  </script>
+  <script id="waterFragmentShader" type="x-shader/x-vertex">
+
+    //Source: http://www.chandlerprall.com/webgl/terrain/
+    uniform float water_level;
+    uniform float time;
+
+    varying float vDisplacement;
+    varying vec2 vUv;
+    varying vec3 vPosition;
+
+    void main() {
+
+      // Base Color
+      gl_FragColor = vec4(0.5, 0.7, 1.0, .7);
+
+      float low_tide = sin(radians(time / 10.0)); // Mostly animation speed
+
+      // Determine at what point the elevation must be for the foam to display
+      low_tide -= 1.5;
+      low_tide *= .3;
+
+      if (vDisplacement > low_tide + water_level) {
+        gl_FragColor = mix(
+          gl_FragColor,
+          vec4(1.0, 1.0, 1.0, 1.0),
+          .6
+        );
+      }
+
+    }
+
+  </script>
+
+  <link href="styles/style.css" rel="stylesheet" />
+  <link href="components/slider.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="./terrain_files/Three.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.14.3/ui-bootstrap-tpls.js"></script>
+
+
+  <!--Components-->
+  <!--Dragging rotation-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.0/TweenLite.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.0/utils/Draggable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.0/plugins/CSSPlugin.min.js"></script>
+  <script src="components/angular-tweebmax-draggable-knob.js"></script>
+  <script src="components/slider.js"></script>
+  <script type="text/javascript" src="./terrain_files/terrain_editor.js"></script>
+  <script type="text/javascript" src="js/app.js"></script>
+  <title>Terrain Editor</title>
+
+</head>
+<body ng-app="editor" ng-controller="editorCtrl" ng-class="{'rotate-cursor': rotCursor}" ng-mouseup="normalCursor()">
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Terrain Editor</a>
+      </div>
+
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">File <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#" ng-click="createNew()">New terrain file<span class="glyphicon glyphicon-plus pull-right"></span></a></li>
+              <li><a href="#" ng-click="openNew()">Open file<span class="glyphicon glyphicon-folder-open pull-right"></span></a></li>
+              <li><a href="#" ng-click="exportFile()">Save/Export to<span class="glyphicon glyphicon-share-alt pull-right"></span></a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#">Undo<span class="glyphicon glyphicon-arrow-left pull-right"></span></a></li>
+              <li><a href="#">Redo<span class="glyphicon glyphicon-arrow-right pull-right"></span></a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tools <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#" ng-click="toggleItem('Terrain')">Terrain <span ng-show="sideMenuActive.Terrain" class="glyphicon glyphicon-ok pull-right"></span></a></li>
+              <li><a href="#" ng-click="toggleItem('Textures')">Textures <span ng-show="sideMenuActive.Textures" class="glyphicon glyphicon-ok pull-right"></span></a></li>
+              <li><a href="#" ng-click="toggleItem('Objects')">Objects <span ng-show="sideMenuActive.Objects" class="glyphicon glyphicon-ok pull-right"></span></a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Import <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#" ng-click="openImportDialog('texture')">Texture</a></li>
+              <li><a href="#" ng-click="openImportDialog('object')">Object</a></li>
+            </ul>
+          </li>
+        </ul>
+        <form class="navbar-form navbar-left" role="search">
+          <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search term">
+          </div>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="stats panel panel-default">
+    <div class="panel-body">
+      <dl>
+        <dt>
+          Selected tool:
+        </dt>
+        <dd>
+          {{selectedTool.hill ? 'Hill' : 'Valley'}}
+        </dd>
+        <dt>
+          Current water level:
+        </dt>
+        <dd>
+          {{variables.waterLevel}} units
+        </dd>
+        <dt>
+          Current ring radius:
+        </dt>
+        <dd>
+          {{variables.radius}} units
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="side-toolbar" ng-show="sideToolbarActive.Terrain">
+    <div class="side-toolbar-content">
+      <h4>Terrain edit</h4>
+      <div class="texture" ng-click="selectTool('hill')" ng-class="{selected: selectedTool.hill}">
+        <img width="60" height="60" src="objects/au.gif" class="float-left"/>
+        <span>Create a hill</span>
+      </div>
+      <div class="texture" ng-click="selectTool('valley')" ng-class="{selected: selectedTool.valley}">
+        <img width="60" height="60" src="objects/ad.gif" class="float-left" />
+        <span>Create a valley</span>
+      </div>
+      Set water level: {{variables.waterLevel}} units
+      <slider floor="-4" ceiling="4" step="0.1" precision="2" ng-model="variables.waterLevel"></slider>
+      <br />
+      Set ring radius: {{variables.radius}} units
+      <slider floor="1" ceiling="35" step="1" precision="2" ng-model="variables.radius"></slider>
+    </div>
+  </div>
+  <div class="side-toolbar" ng-show="sideToolbarActive.Textures">
+    <div class="side-toolbar-content">
+      <h4>Textures</h4>
+      <form>
+        <div class="form-group">
+          <label>Set upper texture</label>
+          <select id="selectTexture" class="form-control" ng-model="texture.upper" ng-change="setTexture('upper')">
+            <option ng-repeat="texture in textures" value="{{texture.value}}">{{texture.name}}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Set middle texture</label>
+          <select id="selectTexture" class="form-control" ng-model="texture.middle" ng-change="setTexture('middle')">
+            <option ng-repeat="texture in textures" value="{{texture.value}}">{{texture.name}}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Set lower texture</label>
+          <select id="selectTexture" class="form-control" ng-model="texture.lower" ng-change="setTexture('lower')">
+            <option ng-repeat="texture in textures" value="{{texture.value}}">{{texture.name}}</option>
+          </select>
+        </div>
+        <div class="texture-no-hover" ng-repeat="texture in textures">
+          <img width="60" height="60" src="{{texture.value}}" class="float-left" />
+          <span>{{texture.name}} texture</span>
+        </div> 
+      </form>
+    </div> 
+  </div>
+  <div class="side-toolbar objects" ng-show="sideToolbarActive.Objects">
+    <div class="side-toolbar-content">
+      <h4>Insert objects</h4>
+      <div class="texture" ng-repeat="item in objectImages">
+        <img width="60" height="60" src="{{item.src}}" class="float-left" />
+        <span>{{item.name}}</span>
+      </div>
+    </div>  
+  </div>
+  <div class="side-menu">
+    <div class="side-menu-item" ng-repeat="item in sideMenu" ng-click="togglePanel(item)" ng-class="{selected: sideToolbarActive[item]}">
+      <div>{{item}}</div>
+    </div>
+  </div>
+  
+  
+  <div class="editor-wrapper">
+    <div class="pull-right">
+      <div class="rotation-wheel rotate-cursor" tmax-knob on-drag="onDrag(rotation)">
+        <div class="marker"><span>N</span></div>
+        <div class="inner-wheel"></div>
+      </div>
+    </div>
+    <div id="viewport"></div>
+  </div>
+
+
+</body>
+</html>

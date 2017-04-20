@@ -1,0 +1,136 @@
+﻿.editor-wrapper {
+  height: 100%;
+  width: 100%;
+  padding: 40px;
+}
+
+.rotation-wheel {
+  border: 2px solid black;
+  width: 124px;
+  height: 124px;
+  border-radius: 62px;
+  padding: 15px;
+  box-shadow: 0 0 10px #888888;
+  background-color: #c1b8b8;
+}
+
+  .rotation-wheel .inner-wheel {
+    border: 2px solid black;
+    width: 90px;
+    height: 90px;
+    border-radius: 45px;
+    margin-top: -10px;
+    background-color: white;
+    box-shadow: 0 0 10px #888888;
+  }
+
+  .rotation-wheel .marker {
+    border: 2px solid black;
+    width: 40px;
+    height: 40px;
+    margin: -30px auto 0;
+    z-index: 3;
+    background-color: white;
+    border-radius: 20px;
+    text-align: center;
+    padding: 5px;
+  }
+
+    .rotation-wheel .marker span {
+      font-size: 130%;
+    }
+
+.rotate-cursor {
+  cursor: url(../assets/rotate.gif), auto;
+}
+
+#viewport {
+  position: relative;
+  width: 800px;
+  height: 640px;
+  margin: 0 auto;
+}
+
+.side-menu {
+  position: absolute;
+  top: 100px;
+  left: 0px;
+}
+
+.side-menu .side-menu-item {
+  height: 100px;
+  width: 40px;
+  background-color: #f8f8f8;
+  border-radius: 0 10px 10px 0;
+  border: 1px solid;
+  border-color: #e7e7e7;
+  cursor: pointer;
+}
+
+.side-menu .side-menu-item:hover {
+  background-color: #f2f2f2;
+}
+
+.side-menu .side-menu-item div {
+  transform: rotate(-90deg) translate(-14px, -12px);
+  transform-origin: bottom right;
+  color: #777
+}
+
+.side-toolbar {
+  position: absolute;
+  top: 80px;
+  left: 0px;
+  width: 300px;
+  height: 622px;
+  background-color: white;
+  border: 1px solid;
+  border-color: #d2d2d2;
+  border-radius: 0 10px 10px 0;
+}
+
+.side-toolbar .side-toolbar-content {
+  margin-left: 40px;
+  padding: 20px;
+}
+
+.objects {
+  overflow: auto;
+}
+
+div.texture {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid;
+  border-color: #d2d2d2;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.texture:hover {
+  background-color: #e2e2e2;
+}
+
+.texture span {
+  margin-left: 5px;
+}
+
+.selected {
+  background-color: #e2e2e2;
+}
+
+.stats {
+  position: absolute;
+  top: 80px;
+  left: 350px;
+}
+
+.texture-no-hover {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid;
+  border-color: #d2d2d2;
+  border-radius: 5px;
+}
